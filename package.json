@@ -1,0 +1,19 @@
+{
+  "name": "OICQ-console-loader",
+  "version": "1.0.0",
+  "description": "基于OICQ-Bot框架模板的插件加载器，更方便配置机器人、加载插件",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./index.js"
+  },
+  "author": "yanhy2000",
+  "license": "MIT",
+  "dependencies": {
+    "dgram": "^1.0.1",
+    "http": "^0.0.1-security",
+    "oicq": "^1.19.4"
+  },
+  "devDependencies": {
+    "@types/node": "^16.4.13"
+  }
+}

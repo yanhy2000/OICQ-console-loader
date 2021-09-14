@@ -1,0 +1,6 @@
+.vscode
+node_modules
+data
+temp
+test
+node.exe
