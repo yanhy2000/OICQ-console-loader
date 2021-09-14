@@ -4,6 +4,11 @@ let path = require('path');
 let data = "./data/config.json"
 let datapath = "./data"
 let plugpath = "./plugins"
+
+function logger(e)
+{
+	console.log("%c[OCL]"+e,"color: #f00")
+}
 fs.exists(datapath,function(exists){ //这两段不会优化，有点繁琐
 	if(!exists){
 		 fs.mkdirSync(datapath);
@@ -16,7 +21,7 @@ fs.exists(plugpath,function(exists){
 })
 fs.access(data, fs.constants.F_OK, (err) => {
 	if (err) {
-	  this.logger.mark("[OCL][INFO]配置文件不存在！准备自动创建...")
+		logger("[INFO]配置文件不存在！准备自动创建...")
 	  let jsonData = {
 		"qq": 123456,
 		"login_qrcode":true,
@@ -26,20 +31,23 @@ fs.access(data, fs.constants.F_OK, (err) => {
 	let file = path.join(datapath, 'config.json');
 	fs.writeFile(file, text, function (err) {
 		if (err) {
-			this.logger.mark("[OCL][INFO]文件创建失败，请手动检查！");
+			logger("[INFO]文件创建失败，请手动检查！");
 		} else {
-			setTimeout(()=>this.logger.mark('[OCL][INFO]文件创建成功！文件名：' + file+"\n[OCL][WARN]第一次文件创建完成请手动修改配置文件后使用！3s后准备强制退出..."),1000);
+			setTimeout(()=>logger('[INFO]文件创建成功！文件名：' + file+"\n[WARN]第一次文件创建完成请手动修改配置文件后使用！3s后准备强制退出..."),1000);
 			setTimeout(function(){process.exit(0)},4000)//强制退出，延时3s
 		}
 	});
 
 	}else{
-		this.logger.mark("[OCL][INFO]检测配置文件存在，准备启动BOT...") 
-		
+		logger("[INFO]检测配置文件存在，准备启动BOT...") 
+
+		console.log("   ███████     ██████  ██                               ██               \n  ██░░░░░██   ██░░░░██░██                              ░██               \n ██     ░░██ ██    ░░ ░██        ██████   ██████       ░██  █████  ██████\n░██      ░██░██       ░██       ██░░░░██ ░░░░░░██   ██████ ██░░░██░░██░░█\n░██      ░██░██       ░██      ░██   ░██  ███████  ██░░░██░███████ ░██ ░ \n░░██     ██ ░░██    ██░██      ░██   ░██ ██░░░░██ ░██  ░██░██░░░░  ░██   \n ░░███████   ░░██████ ░████████░░██████ ░░████████░░██████░░██████░███   \n  ░░░░░░░     ░░░░░░  ░░░░░░░░  ░░░░░░   ░░░░░░░░  ░░░░░░  ░░░░░░ ░░░    \n");
 let config = JSON.parse(fs.readFileSync(data));
 const loginway = config.login_qrcode;//登陆方式，默认为为true；（true：扫码登陆，false：密码登陆）
 const account = config.qq;//机器人qq号
 const password = config.password;
+
+
 
 const conf = {//机器人内部配置
 		platform: 2,//2：使用安卓pad协议
@@ -48,8 +56,9 @@ const conf = {//机器人内部配置
 		resend: true,
 		brief: true		
 }
-const bot = require("oicq").createClient(account,conf)
 
+const bot = require("oicq").createClient(account,conf)
+setTimeout(()=>{
 if(loginway)//默认扫码登陆
 {
 	bot.on("system.login.qrcode", function (e) {
@@ -77,11 +86,11 @@ else{//密码登陆
 		});
 	  }).login(password);
 }
-
+},3000)
 function loadPlugins()
 {
 	exports.bot = bot;//主程序
-	this.logger.mark("[OCL][INFO]准备加载插件...");
+	logger("[INFO]准备加载插件...");
 	// delete require.cache[require.resolve("./plugins/custom-ban")];//重载功能未完善！
 	// setTimeout(function(){require("./plugins/custom-ban")},300);
 }
