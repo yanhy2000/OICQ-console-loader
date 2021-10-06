@@ -3,6 +3,7 @@ const { bot } = require("../../index");
 
 bot.on("message.group", function (e) {
     if(e.raw_message == "test"){
-        e.reply("hhhhhh");
+        e.reply("11132测试！");
     }
 })
+console.log("测试插件加载成功！")

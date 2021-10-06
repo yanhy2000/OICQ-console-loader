@@ -1,6 +1,7 @@
 "use strict"
 var fs = require('fs');
 let path = require('path');
+let readline = require('readline')
 let data = "./data/config.json"
 let datapath = "./data"
 let plugpath = "./plugins"
@@ -11,38 +12,33 @@ function logger(e)
 }
 
 function init(){
-	fs.exists(datapath,function(exists){
-		if(!exists){
-			fs.mkdirSync(datapath);
-		}
-	})
-	fs.exists(plugpath,function(exists){
-		if(!exists){
-			fs.mkdirSync(plugpath);
-		}
-	})
-	fs.access(data, fs.constants.F_OK, (err) => {
-		if (err) {
-			logger("[INFO]配置文件不存在！准备自动创建...")
-		let jsonData = {
-			"qq": 123456,
-			"login_qrcode":true,
-			"password":123456
-		}
-		let text = JSON.stringify(jsonData,null,'\t')
-		let file = path.join(datapath, 'config.json');
-		fs.writeFile(file, text, function (err) {
-			if (err) {
-				logger("[INFO]文件创建失败，请手动检查！");
-			} else {
-				setTimeout(()=>logger('[INFO]文件创建成功！文件名：' + file+"\n[WARN]第一次文件创建完成请手动修改配置文件后使用！3s后准备强制退出..."),1000);
-				setTimeout(function(){process.exit(0)},4000)//强制退出，延时3s
-			}
-		});
-
-		}else{
+	if(!fs.existsSync(datapath))
+    {
+        fs.mkdirSync(datapath)
+    }
+	if(!fs.existsSync(plugpath))
+    {
+        fs.mkdirSync(plugpath)
+    }
+	try{
+		if(fs.openSync(data,'r'))//配置文件创建
+		{
 			logger("[INFO]检测配置文件存在，准备启动BOT...") 
-		}});
+		}}catch(err){
+			logger("[INFO]配置文件不存在！准备自动创建...")
+			let jsonData = {
+				"qq": 123456,
+				"login_qrcode":true,
+				"password":123456
+			}
+			let text = JSON.stringify(jsonData,null,'\t');
+			let file = path.join(datapath, 'config.json');
+			var fd = fs.openSync(data,'w');
+			fs.writeSync(fd, text);
+			setTimeout(()=>logger('[INFO]文件创建成功！文件名：' + file+"\n[WARN]第一次文件创建完成请手动修改配置文件后使用！3s后准备强制退出..."),100);
+			fs.closeSync(fd);
+			setTimeout(function(){process.exit(0)},3000)//强制退出，延时3s
+		}
 }
 
 function load(){
@@ -74,7 +70,7 @@ const conf = {//机器人内部配置
 		brief: true		
 }
 const bot = require("oicq").createClient(account,conf)
-setTimeout(()=>{
+setTimeout(()=>{//登陆部分
 //默认扫码登陆
 if(loginway)
 {
@@ -107,40 +103,23 @@ else{
 },3000)
 
 setTimeout(()=>{exports.bot = bot;//主程序;
-	load()},2000);
+	exports.logger = logger;
+	load()},3100);
 
 //控制台指令控制
-process.stdin.on('data',(input)=>{
-	console.log(input)
-	if(input=="<Buffer 73 74 6f 70 0d 0a>"){//歪比歪比？
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+})
+rl.on('line', (str) => {
+    if (str === 'stop') {
 		logger("Bot即将退出...")
 		setTimeout(function(){process.exit(0)},1000)
-	}
-});
-
-
-
-
-
-// function loadPlugins()
-// {
-// 	exports.bot = bot;//主程序
-// 	logger("[INFO]准备加载插件...");
-// 	// delete require.cache[require.resolve("./plugins/custom-ban")];//重载功能未完善！
-// 	setTimeout(function(){require("./plugins/main")},300);
-// }
-// loadPlugins();
-
-
-
-
-// bot.on("message.group",function(e){
-// 	if(admin.indexOf(e.user_id)!=-1)
-// 	{
-// 		if(e.raw_message == '/reload'){//WARN!!!本功能未完善，缓存无法清除，会存在重复发言的情况，只能重启机器人解决！
-// 			e.reply( "reloaded!")
-// 			setTimeout(function(){loadPlugins();},300);
-// 		}
-		
-// 	}
+    }
+})
+// rl.on('line', (str) => {
+//     if (str === 'reload') {
+// 		logger("插件正在重载...")
+// 		setTimeout(function(){load()},1000)
+//     }
 // })
