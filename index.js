@@ -42,17 +42,23 @@ function init(){
 }
 
 function load(){
-		fs.exists("plugins",function(exists){
-		if(!exists){fs.mkdirSync("plugins")}})
 		setTimeout(()=>{let file_len = (JSON.parse(JSON.stringify(fs.readdirSync("plugins")))).length;
 		let lists = "";
+		let fail_num=0;
 		for(let i=0;i<file_len;i++){
 		if(/^#.*/.test((JSON.parse(JSON.stringify(fs.readdirSync("plugins"))))[i])){
 		lists += " "+/^#.*/.exec((JSON.parse(JSON.stringify(fs.readdirSync("plugins"))))[i])}}
 		let plugins = lists.split(" ");
 		for(let i=1;i<plugins.length;i++){
-		require("./plugins/"+plugins[i]+"/main.js")}
-		logger("共加载了"+((plugins.length)-1)+"个插件")},100)
+			try{
+				require("./plugins/"+plugins[i]+"/main.js");
+			}catch(err){
+				logger("插件"+plugins[i]+"加载失败！信息："+err);
+				fail_num++;
+			}
+			}
+		
+		logger("共加载了"+((plugins.length)-1-fail_num)+"个插件")},100)
 }
 
 init();
@@ -67,7 +73,7 @@ const conf = {//机器人内部配置
 		kickoff: false,
 		ignore_self: true,
 		resend: true,
-		brief: true		
+		brief: true//被风控时分片发送
 }
 const bot = require("oicq").createClient(account,conf)
 setTimeout(()=>{//登陆部分
@@ -88,23 +94,20 @@ if(loginway)
 }
 //密码登陆
 else{
-	bot.on("system.login.slider", function (event) {
-		this.logger.mark("需要验证滑块登陆！") 
-		process.stdin.once("data", (input) => {
-		  this.sliderLogin(input);
-		});
-	  }).on("system.login.device", function (event) {
-		this.logger.mark("验证完成后按回车登录") 
-		process.stdin.once("data", () => {
-		  this.login();
-		});
-	  }).login(password);
+	logger("第一次使用推荐使用扫码登陆，不会容易受到风控与冻结...")
+	bot.login(password)
 }
 },3000)
 
-setTimeout(()=>{exports.bot = bot;//主程序;
+setTimeout(()=>{
+	try{
+	exports.bot = bot;//主程序;
 	exports.logger = logger;
-	load()},3100);
+	load()
+}catch(err){
+	console.log("插件加载异常！info:",err);
+}
+},3100);
 
 //控制台指令控制
 const rl = readline.createInterface({

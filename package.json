@@ -11,7 +11,7 @@
   "dependencies": {
     "dgram": "^1.0.1",
     "http": "^0.0.1-security",
-    "oicq": "^1.19.4"
+    "oicq": "^2.1.0-beta"
   },
   "devDependencies": {
     "@types/node": "^16.4.13"
